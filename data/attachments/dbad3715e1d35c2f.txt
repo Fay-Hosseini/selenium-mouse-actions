@@ -1,0 +1,1 @@
+Slider value after move: 52
