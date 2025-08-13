@@ -1,31 +1,41 @@
-name: Auto Commit and Push
+name: Python Selenium CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHONPATH: ./  # Ensure modules can be found
+  PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
 
 jobs:
-  commit_and_push:
+  test-and-push:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
         with:
-          persist-credentials: false  # disable the default token so we can use our own for pushing
+          python-version: 3.11
 
-      - name: Make changes or run scripts
+      - name: Install dependencies
         run: |
-          echo "Automated update at $(date)" >> update.log
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Commit files
+      - name: Run tests
         run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@github.com'
-          git add update.log
-          git commit -m "Automated update"
-          
-      - name: Push changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pytest tests/
+
+      - name: Commit and push changes
         run: |
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} HEAD:main
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          git commit -m "Automated update" || echo "No changes to commit"
+          git push https://x-access-token:${PAT_TOKEN}@github.com/Fay-Hosseini/selenium-mouse-actions.git HEAD:main
