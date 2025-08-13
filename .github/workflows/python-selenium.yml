@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          persist-credentials: false  # disable the default token so we can use our own for pushing
 
       - name: Make changes or run scripts
         run: |
@@ -21,4 +23,9 @@ jobs:
           git config --global user.email 'github-actions@github.com'
           git add update.log
           git commit -m "Automated update"
-          git push origin main
+          
+      - name: Push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} HEAD:main
